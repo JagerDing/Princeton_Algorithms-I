@@ -1,9 +1,21 @@
+import java.util.Iterator;
 public class Deque<Item> implements Iterable<Item> {
 	 private class Node<Item> {
 	 	Item item;
 	 	Node next;
 	 	Node front;
 	 }
+	 private class ListIterator implements Iterator<Item>{
+   	private Node<Item> current = first;
+   	
+   	public boolean hasNext(){return current != null;}
+   	public void remove() {}
+   	public Item next(){
+   		Item item = current.item;
+   		current = current.next;
+   		return item;
+   	}
+   }
 	 private Node<Item> first, last;
 	 private int size;
 	 
@@ -24,9 +36,15 @@ public class Deque<Item> implements Iterable<Item> {
    	first = new Node<Item>();
    	first.item = item;
    	first.front = null;
-   	if(oldfirst == null) {first = last;}
-   	else {oldfirst.front = first;}
-   	first.next = oldfirst;
+   	if(oldfirst == null) {  		
+   		last = first;
+   		last.next = null;
+   	}
+   	else {
+   		oldfirst.front = first;
+   		first.next = oldfirst;
+   	}
+   	
    }         
    
    public void addLast(Item item) {      // add the item to the end
@@ -40,7 +58,7 @@ public class Deque<Item> implements Iterable<Item> {
    	}
    	else {
    		oldlast.next = last;
-   		last.front = oldfirst;
+   		last.front = oldlast;
    	}
    }          
    
@@ -59,7 +77,19 @@ public class Deque<Item> implements Iterable<Item> {
    }            
    
    public Iterator<Item> iterator() {     // return an iterator over items in order from front to end
-   	
+   	return new ListIterator();
    }   
-   public static void main(String[] args)   // unit testing (optional)
+   
+   public static void main(String[] args) {     // unit testing (optional)
+   	Deque<String> a = new Deque<String>();
+   	System.out.println("is the deque empty? " + a.isEmpty());
+   	a.addFirst("zheshiyi");
+   	a.addLast("zheshier");
+   	a.addLast("asldjkhf");
+   	a.addFirst("waoeirht");
+   	Iterator<String> b = a.iterator();
+   	while(b.hasNext()){
+   		System.out.println(b.next());
+   	}
+   }  
 }
