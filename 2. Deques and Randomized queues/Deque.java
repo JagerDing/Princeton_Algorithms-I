@@ -1,4 +1,6 @@
 import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 public class Deque<Item> implements Iterable<Item> {
 	 private class Node<Item> {
 	 	Item item;
@@ -9,8 +11,13 @@ public class Deque<Item> implements Iterable<Item> {
    	private Node<Item> current = first;
    	
    	public boolean hasNext(){return current != null;}
-   	public void remove() {}
+   	public void remove() {
+   		throw new UnsupportedOperationException ("Not supported yet.");
+   	}
    	public Item next(){
+   		if(!hasNext()){
+   			throw new java.util.NoSuchElementException("no more items to return.");
+   		}
    		Item item = current.item;
    		current = current.next;
    		return item;
@@ -32,6 +39,9 @@ public class Deque<Item> implements Iterable<Item> {
    	return size;
    }                       
    public void addFirst(Item item) {     // add the item to the front
+   	if(item == null){
+   		throw new IllegalArgumentException("can not add a null item");
+   	}
    	Node<Item> oldfirst = first;
    	first = new Node<Item>();
    	first.item = item;
@@ -48,6 +58,9 @@ public class Deque<Item> implements Iterable<Item> {
    }         
    
    public void addLast(Item item) {      // add the item to the end
+   	if(item == null){
+   		throw new IllegalArgumentException("can not add a null item");
+   	}
    	Node<Item> oldlast = last;
    	last = new Node<Item>();
    	last.item = item;
@@ -63,6 +76,9 @@ public class Deque<Item> implements Iterable<Item> {
    }          
    
    public Item removeFirst() {   // remove and return the item from the front
+   	if(first == null){
+   		throw new java.util.NoSuchElementException("can not remove from empty deque");
+   	}
    	Item item = first.item;
    	first = first.next;
    	first.front = null;
@@ -83,7 +99,7 @@ public class Deque<Item> implements Iterable<Item> {
    public static void main(String[] args) {     // unit testing (optional)
    	Deque<String> a = new Deque<String>();
    	System.out.println("is the deque empty? " + a.isEmpty());
-   	a.addFirst("zheshiyi");
+   	a.addFirst(null);
    	a.addLast("zheshier");
    	a.addLast("asldjkhf");
    	a.addFirst("waoeirht");
