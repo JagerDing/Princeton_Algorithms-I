@@ -42,8 +42,8 @@ public class Percolation {
     /* open function
      * @para. index of site (row, col)
      * First, open the site
-     * Then, union with nearby site. Sequence is up, down, left, right
-     * Then, find root and decide if connected to the top or bottom
+     * Then, find root of this site and nearby sites, and decide if connected to the top or bottom
+     * Then, union with nearby site. Sequence is up, down, left, right    
      * If one site connectTop && connectBottom, percolateFlag = true
      */
     public void open(int row, int col)  { 
