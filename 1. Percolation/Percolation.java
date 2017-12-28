@@ -1,203 +1,147 @@
-public class Percolation {
+/* Using Monte Carlo method to simulate percolation threshold
+ * WeightedQuickUnionUF object is used.
+ * Unfortunately, WQUUF doesnt include path compression.
+ * Backwash problem is fixed
+ * reference: http://www.cnblogs.com/anne-vista/p/4841732.html
+ * @author: Jia Ding
+ */
+import edu.princeton.cs.algs4.WeightedQuickUnionUF;
 
-	private int opensite;
-	private int[][] grid;
-	private int n;
+public class Percolation {  
+    private boolean[] isopen;        //record status of each site
+    private boolean[] connectTop;    // if connected to the top
+    private boolean[] connectBottom; //              ... bottom
+    private final int n;             // length of grid
+    private int count = 0;           // number of open sites
+    private WeightedQuickUnionUF uf; 
+    private boolean percolateFlag = false;
+  
+    public Percolation(int i)  {   
+    	if (i <= 0) {
+    		throw new IllegalArgumentException("input should larger than 0");
+    	}
+    	n = i;
+    	uf = new WeightedQuickUnionUF(n*n);
+    	isopen = new boolean[n*n];
+    	connectTop = new boolean[n*n];
+    	connectBottom = new boolean[n*n];
+    	for (int j = 0; j < n*n; j++) {
+    		isopen[j] = false;
+    		connectTop[j] = false;
+    		connectBottom[j] = false;
+    	}
+    }
+    
+    private void validate(int i, int j) {   
+    	if (i < 1 || i > n || j < 1 || j > n)  {
+    		throw new IllegalArgumentException("the index should between 1 and " + n);
+    	}
 
-	public Percolation(int num) { // create n-by-n grid with all sites blocked
-		if (num <= 0) {
-			System.out.println("java.lang.IllegalArgumentException");
-			return;
-		}
-		n = num;
-		grid = new int[n][n];
-		for (int i = 0; i < n; i++) {
-			for (int j = 0; j < n; j++) {
-				grid[i][j] = 0; // 0 means blocked
-			}
-		}
-		opensite = 0;
-	}
+    }
+	
+    /* open function
+     * @para. index of site (row, col)
+     * First, open the site
+     * Then, union with nearby site. Sequence is up, down, left, right
+     * Then, find root and decide if connected to the top or bottom
+     * If one site connectTop && connectBottom, percolateFlag = true
+     */
+    public void open(int row, int col)  { 
+      validate(row, col);
+      int index = (row-1)*n + col - 1;
+      if (isopen[index]) return;
+      isopen[index] = true;
+      count++;
+      
+      boolean top = false;
+      boolean bottom = false;
+      if (row > 1 && isopen[index-n] ) {
+      	if (connectTop[uf.find(index)] || connectTop[uf.find(index-n)]) {
+      		top = true;
+      	}
+      	if (connectBottom[uf.find(index)] || connectBottom[uf.find(index-n)]) {
+      		bottom = true;
+      	}
+      	uf.union(index, index-n);
+      }
+      if (row < n && isopen[index+n] ) {
+      	if (connectTop[uf.find(index)] || connectTop[uf.find(index+n)]) {
+      		top = true;
+      	}
+      	if (connectBottom[uf.find(index)] || connectBottom[uf.find(index+n)]) {
+      		bottom = true;
+      	}
+      	uf.union(index, index+n);
+      } 
+      if (col > 1 && isopen[index-1] ) {
+      	if (connectTop[uf.find(index)] || connectTop[uf.find(index-1)]) {
+      		top = true;
+      	}
+      	if (connectBottom[uf.find(index)] || connectBottom[uf.find(index-1)]) {
+      		bottom = true;
+      	}
+      	uf.union(index, index-1);
+      } 
+      if (col < n && isopen[index+1] ) {
+      	if (connectTop[uf.find(index)] || connectTop[uf.find(index+1)]) {
+      		top = true;
+      	}
+      	if (connectBottom[uf.find(index)] || connectBottom[uf.find(index+1)]) {
+      		bottom = true;
+      	}
+      	uf.union(index, index+1);
+      } 
+      
+      if (row == 1) top = true;
+      if (row == n) bottom = true;
+      connectTop[uf.find(index)] = top;
+      connectBottom[uf.find(index)] = bottom;
+      if (top && bottom) percolateFlag = true;      
+    }
+    
+    public boolean isOpen(int row, int col) { 
+    	validate(row, col);
+    	return isopen[(row-1)*n + col - 1];
+    }
 
-	private void nearbyopen(int row, int col, int rowne, int colne) {
-		// int n = grid.length;
-		// find the root of the new open site
-		while (grid[row - 1][col - 1] != (row - 1) * n + col && grid[row - 1][col - 1] > 0) {
-			int row_t = (grid[row - 1][col - 1] - 1) / n + 1;
-			col = (grid[row - 1][col - 1] - 1) % n + 1;
-			row = row_t;
-		}
-		// find the root of the nearby open site
-		while (grid[rowne - 1][colne - 1] != (rowne - 1) * n + colne && grid[rowne - 1][colne - 1] > 0) {
-			int rowne_t = (grid[rowne - 1][colne - 1] - 1) / n + 1;
-			colne = (grid[rowne - 1][colne - 1] - 1) % n + 1;
-			rowne = rowne_t;
-		}
-		if (grid[row - 1][col - 1] >= grid[rowne - 1][colne - 1]) {
-			grid[row - 1][col - 1] = (rowne - 1) * n + colne;
-		} else {
-			grid[rowne - 1][colne - 1] = (row - 1) * n + col;
-		}
-	}
+    public boolean isFull(int row, int col) {    
+    	validate(row, col);
+    	int index = (row-1)*n + col - 1;
+      return connectTop[uf.find(index)];
+    }
+    
+    public int numberOfOpenSites() {
+    	return count;
+    }
 
-	public void open(int row, int col) { // open a site and connect it with nearby open site
-		// int n = grid.length;
-		if (row <= 0 || row > n || col <= 0 || col > n) {
-			System.out.println("java.lang.IllegalArgmentException");
-			return;
-		}
-		grid[row - 1][col - 1] = (row - 1) * n + col;
-		opensite++;
+    public boolean percolates()  {             // does the system percolate? 
+      return percolateFlag;
+    }
+    
+    public static void main(String[] args) {    // test client
+    	Percolation per = new Percolation(4);
+    	per.open(1,3);
+    	per.open(2,3);
+    	per.open(3,3);
+    	per.open(4,3);
 
-		if (row == 1) { // top row
-			grid[row - 1][col - 1] = -1; // top imagine root is -1
-			if (col == 1) {
-				if (grid[row][col - 1] != 0) { // if its undersite is open
-					nearbyopen(row, col, row + 1, col);
-				}
-				if (grid[row - 1][col] != 0) { // if its rightsite is open
-					nearbyopen(row, col, row, col + 1);
-				}
-
-			} else if (col == n) {
-				if (grid[row][col - 1] != 0) { // if its undersite is open
-					nearbyopen(row, col, row + 1, col);
-				}
-				if (grid[row - 1][col - 2] != 0) { // if its leftsite is open
-					nearbyopen(row, col, row, col - 1);
-				}
-
-			} else {
-				if (grid[row][col - 1] != 0) { // if its undersite is open
-					nearbyopen(row, col, row + 1, col);
-				}
-				if (grid[row - 1][col] != 0) { // if its rightsite is open
-					nearbyopen(row, col, row, col + 1);
-				}
-				if (grid[row - 1][col - 2] != 0) { // if its leftsite is open
-					nearbyopen(row, col, row, col - 1);
-				}
-			}
-		}
-
-		else if (row == n) { // bottom row
-			grid[row - 1][col - 1] = -2; // bottom imagine root is -2
-			if (col == 1) {
-				if (grid[row - 2][col - 1] != 0) { // if its upsite is open
-					nearbyopen(row, col, row - 1, col);
-				}
-				if (grid[row - 1][col] != 0) { // if its rightsite is open
-					nearbyopen(row, col, row, col + 1);
-				}
-
-			} else if (col == n) {
-				if (grid[row - 2][col - 1] != 0) { // if its upsite is open
-					nearbyopen(row, col, row - 1, col);
-				}
-				if (grid[row - 1][col - 2] != 0) { // if its leftsite is open
-					nearbyopen(row, col, row, col - 1);
-				}
-
-			} else {
-				if (grid[row - 2][col - 1] != 0) { // if its upsite is open
-					nearbyopen(row, col, row - 1, col);
-				}
-				if (grid[row - 1][col] != 0) { // if its rightsite is open
-					nearbyopen(row, col, row, col + 1);
-				}
-				if (grid[row - 1][col - 2] != 0) { // if its leftsite is open
-					nearbyopen(row, col, row, col - 1);
-				}
-			}
-		}
-
-		else if (col == 1) { // left collom
-			if (grid[row - 2][col - 1] != 0) { // if its upsite is open
-				nearbyopen(row, col, row - 1, col);
-			}
-			if (grid[row][col - 1] != 0) { // if its underside is open
-				nearbyopen(row, col, row + 1, col);
-			}
-			if (grid[row - 1][col] != 0) { // if its rightside is open
-				nearbyopen(row, col, row, col + 1);
-			}
-		}
-
-		else if (col == n) { // right collom
-			if (grid[row - 2][col - 1] != 0) { // if its upsite is open
-				nearbyopen(row, col, row - 1, col);
-			}
-			if (grid[row][col - 1] != 0) { // if its underside is open
-				nearbyopen(row, col, row + 1, col);
-			}
-			if (grid[row - 1][col - 2] != 0) { // if its leftside is open
-				nearbyopen(row, col, row, col - 1);
-			}
-		}
-
-		else { // inner sites
-			if (grid[row - 2][col - 1] != 0) { // if its upsite is open
-				nearbyopen(row, col, row - 1, col);
-			}
-			if (grid[row][col - 1] != 0) { // if its underside is open
-				nearbyopen(row, col, row + 1, col);
-			}
-			if (grid[row - 1][col - 2] != 0) { // if its leftside is open
-				nearbyopen(row, col, row, col - 1);
-			}
-			if (grid[row - 1][col] != 0) { // if its rightside is open
-				nearbyopen(row, col, row, col + 1);
-			}
-		}
-	}
-
-	public boolean isOpen(int row, int col) {
-		// int n = grid.length;
-		if (row <= 0 || row > n || col <= 0 || col > n) {
-			throw new IndexOutOfBoundsException("row or col index out of bounds");
-		}
-		return grid[row - 1][col - 1] != 0;
-	}
-
-	public boolean isFull(int row, int col) {
-		// int n = grid.length;
-		if (row <= 0 || row > n || col <= 0 || col > n) {
-			throw new IndexOutOfBoundsException("row or col index out of bounds");
-		}
-		if (grid[row - 1][col - 1] == 0) {
-			return false;
-		}
-		while (grid[row - 1][col - 1] != (row - 1) * n + col && grid[row - 1][col - 1] > 0) {
-			int row_t = (grid[row - 1][col - 1] - 1) / n + 1;
-			col = (grid[row - 1][col - 1] - 1) % n + 1;
-			row = row_t;
-		}
-		return grid[row - 1][col - 1] == -1;
-	}
-
-	public int numberOfOpenSites() {
-		return opensite;
-	}
-
-	public boolean percolates() { // does the system percolate?
-		// int n = grid.length;
-		for (int i = 0; i < n; i++) {
-			if (grid[0][i] > n * (n - 1)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public static void main(String[] args) {
-		/*
-		 * int n = 10; Percolation a = new Percolation(n); while(!a.percolates()) { int
-		 * row = (int) (Math.random()*n) + 1; int col = (int) (Math.random()*n) + 1;
-		 * if(!a.isOpen(row,col)) { System.out.println("("+row+","+col+")");
-		 * 
-		 * a.open(row, col);
-		 * 
-		 * } } System.out.println((double)(a.numberOfOpenSites())/n/n);
-		 */
-	}
+    	per.open(4,2);
+    	for (int i = 1; i<=4; i++) {
+    		for (int j = 1; j<=4; j++) {
+    			int index = (i-1)*4 + j - 1;
+    			System.out.print(per.uf.find(index)+" ");
+    	
+    		}
+    		System.out.println();
+    	}
+    	
+    	for (int i = 1; i<=4; i++) {
+    		for (int j = 1; j<=4; j++) {
+    			int index = (i-1)*4 + j - 1;
+    			System.out.print(per.connectTop[index]+" ");
+    	
+    		}
+    		System.out.println();
+    	}
+    }
 }
