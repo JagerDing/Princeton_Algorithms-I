@@ -1,4 +1,4 @@
-/* Double-ended queue data structure
+/* Double-ended queue used Linkedlist to implement
  * @author: Jia Ding
  * 1. In LinkedList, you should take care of the reference and objects.
  *    Sometimes, you changed the reference, but the object keeps the same.
@@ -6,6 +6,7 @@
  * 2. The defination of Iterator.hasNext():
  *    What I thought, if only one item left, hasNext() == false;
  *    However, hasNext() is kind like isEmpty()
+ *    So, the best way is using the number of items.
  */
 import java.util.Iterator;
 import java.util.NoSuchElementException;
