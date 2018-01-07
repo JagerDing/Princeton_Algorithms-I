@@ -1,3 +1,9 @@
+/* Randomized Queue used Array to implement
+ * @author: Jia Ding
+ * Key point is changing the size of array
+ * Here, I introduced two methods: shrink() & resize()
+ * So that, each randomized queue operation (besides iterator) in constant amortized time
+ */
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import edu.princeton.cs.algs4.StdRandom;
@@ -11,7 +17,7 @@ public class RandomizedQueue<Item> implements Iterable<Item> {
   public RandomizedQueue() {
   }
   
-  public boolean isEmpty() { return count == 0;}
+  public boolean isEmpty() { return count-emptyNum == 0;}
   
   public int size() {     //return the number of itmes on the dqueue
   	return count-emptyNum;
