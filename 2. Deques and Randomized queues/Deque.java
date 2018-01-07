@@ -1,4 +1,5 @@
-/* 
+/* Double-ended queue data structure
+ * @author: Jia Ding
  * 1. In LinkedList, you should take care of the reference and objects.
  *    Sometimes, you changed the reference, but the object keeps the same.
  *    Especially for the first and last references with null.
@@ -71,8 +72,8 @@ public class Deque<Item> implements Iterable<Item> {
    	} else {
   		Item temp = last.item;
   		last = last.pre;
-  		last.next = null;
   		if (last == null ) {first = null;}
+		else {last.next = null;}
   		count--;
   		return temp;
   	}
